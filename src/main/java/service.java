@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -27,10 +28,16 @@ abstract class ServiceHandler implements HttpHandler {
 
 public class service {
     private static Logger logger = LogManager.getLogger(service.class);
+    static String respJson; // based64 response in json
+    static String userId;
+    static String userPhone;
+
 
     public static void main(String[] args) {
         // make race
         Gson gson = new Gson();
+
+
         List<raceObj> objList = new ArrayList<raceObj>();
         // fill race values
         for (int i = 0; i < 10; i++) {
@@ -49,6 +56,7 @@ public class service {
             /v1/credit      where users increment their credits
             /v1/fire        where users seelct the buttoms
             /v1/profile     where users get their profiles
+            /v1/money     when user request his/her money
             /v1/version     print API version
         */
         Undertow server = Undertow.builder().addHttpListener(8080,
@@ -81,9 +89,9 @@ public class service {
                         .addExactPath("/v1/signout", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
-                                String userPhone=exchange.getQueryParameters().get("userPhone").getFirst();
+                                String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
                                 if (cache.signedUsers.asMap().containsValue(userPhone)) {
-                                    logger.info("active session find for userPhone {}",userPhone);
+                                    logger.info("active session find for userPhone {}", userPhone);
                                     cache.signedUsers.invalidate(userPhone);
                                     return responseType.RESPONSE_SUCCESS_200;
                                 } else {
@@ -115,16 +123,35 @@ public class service {
 
                             }
                         })
+                        .addExactPath("/v1/money", new ServiceHandler() {
+                            //fixme payment and banking API enhancment
+                            @Override
+                            public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                try {
+                                    userId = exchange.getQueryParameters().get("userId").getFirst();
+                                    userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                    if (!cache.signedUsers.asMap().containsKey(userPhone)) {
+                                        logger.error("{} authenticated error.", userPhone);
+                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
+                                    } else {
+                                        logger.info("{} authenticated succesfully.", userPhone);
+                                    }
+                                    // todo transfer money for his/her banking no.
+                                    return responseType.RESPONSE_SUCCESS_200;
+                                } catch (NullPointerException e) {
+                                    return responseType.FATAL_INTERNAL_ERROR;
+                                }
 
+                            }
+                        })
 
                         .addExactPath("/v1/fire", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
                                 //fixme get all user info from json, then pars it.
                                 try {
-                                    String index = exchange.getQueryParameters().get("index").getFirst();
-                                    String userId = exchange.getQueryParameters().get("userId").getFirst();
-                                    String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                    userId = exchange.getQueryParameters().get("userId").getFirst();
+                                    userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
 
                                     /*
                                         Mistake great than 3 and score is minimum
@@ -150,112 +177,99 @@ public class service {
                                         // user is not registered yet, forward to regustering
                                         return responseType.ERROR_USER_IS_NOT_REGISTERED;
                                     }
-                                    if (cache.mistakeCount.asMap().containsKey(Integer.valueOf(userId))) {
-                                        if (cache.mistakeCount.get(Integer.valueOf(userId)) >= 3) {
-                                            return responseType.WARNING_TRAIAL_LIMIT;
-                                        }
-                                    }
-                                    if (index.equals(String.valueOf(responseType.MAGIC_INDEX_WIN))) {
-                                        logger.info("user {} win the game.", userId);
-                                        cache.userGifts.put(responseType.GIFT,userId);
-                                        return "you win";
-                                    } else {
-                                        if (cache.mistakeCount.asMap().containsKey(Integer.valueOf(userId))) {
-                                            int i = cache.mistakeCount.get(Integer.valueOf(userId));
-                                            i++;
-                                            cache.mistakeCount.put(Integer.valueOf(userId), i);
-                                            logger.warn("{}  mistake for  {} ", userId, i);
-                                            // reduce score
-                                            if (cache.userCredit.asMap().containsKey(userPhone)) {
-                                                String score = String.valueOf(cache.userCredit.asMap().get(userPhone));
-                                                int tmpScore = Integer.parseInt(score);
-                                                tmpScore = tmpScore - 100;
-                                                logger.warn("now user score is  {}", tmpScore);
-                                                cache.userCredit.put(userPhone, String.valueOf(tmpScore));
-                                            } else {
-                                                logger.warn("not found  userPhone {} credits", userPhone);
-                                            }
 
-                                        } else {
-                                            logger.warn("{} first mistake via {} phone", userId, userPhone);
-                                            cache.mistakeCount.put(Integer.valueOf(userId), 1);
-                                            if (cache.userCredit.asMap().containsKey(userPhone)) {
-                                                String score = String.valueOf(cache.userCredit.asMap().get(userPhone));
-                                                int tmpScore = Integer.parseInt(score);
-                                                tmpScore = tmpScore - 100;
-                                                logger.warn("now user score is  {}", tmpScore);
-                                                cache.userCredit.put(userPhone, String.valueOf(tmpScore));
-                                            } else {
-                                                logger.warn("not found  userPhone {} credits", userPhone);
-                                            }
-                                        }
-                                        if (cache.userPlayResult.asMap().containsKey(Integer.valueOf(userId))) {
-                                            String item;
-                                            item = cache.userPlayResult.get(Integer.valueOf(userId));
-                                            item = item + "," + index;
-                                            cache.userPlayResult.put(Integer.valueOf(userId), item);
-                                            logger.info("{} select {}", userId, item);
-                                        } else { /* init */
-                                            cache.userPlayResult.put(Integer.valueOf(userId), index);
-                                            logger.info("{} select {}", userId, index);
-                                        }
-                                        String res = "user clicked -> " + cache.userPlayResult.get(Integer.valueOf(userId));
-                                        return res;
-
-                                    }
                                 } catch (NullPointerException e) {
                                     logger.error(e.getMessage());
                                     return "Error. Bad Request.";
                                 }
 
+                                /* Select random gift, then send to the user.*/
+                                Random rnd = new Random();
+                                int selectResp = rnd.nextInt(5);
+                                logger.info("selectResp value {}", selectResp);
+                                switch (selectResp) {
+                                    case 1:
+                                        respJson = "TEXT Message";
+                                        break;
+                                    case 2:
+                                        respJson = "1000 RIAL GIFT!";
+                                        // there is not gift yet!
+                                        if (!cache.userGifts.asMap().containsKey(userId)) {
+                                            cache.userGifts.put(userId, String.valueOf("1000"));
+                                            logger.info("add 1000 rial gift for user {}",userId);
+                                        }
+                                        try {
+                                            int value = Integer.parseInt(cache.userGifts.asMap().get(userId));
+                                            value = value + 1000;
+                                            logger.info("{} gift for user {} found.",value, userId);
+
+                                            cache.userGifts.put(userId, String.valueOf(value));
+                                            logger.info("add 1000 rial gift for user {}",userId);
+
+                                        } catch (NullPointerException e) {
+                                            return responseType.ERROR_USER_IS_NOT_REGISTERED;
+                                        }
+                                        break;
+                                    case 3:
+                                        respJson = "MEDIA/VIDEO(60 Second)";
+                                        break;
+                                    case 4:
+                                        respJson = "MEDIA/AUDIO(60 Second)";
+                                        break;
+                                    case 5:
+                                        respJson = "MEDIA/IMAGE(JPEG,GIF)";
+                                        break;
+                                }
+
+                                return new Gson().toJson(respJson);
                             }
 
                         }).addExactPath("/v1/profile", new ServiceHandler() {
 
-            @Override
-            public String serve(HttpServerExchange exchange) throws ExecutionException {
-                String userId = exchange.getQueryParameters().get("userId").getFirst();
-                String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                //make user profile and return json
-                // fill race values
-                userInfo userInfo = new userInfo();
+                            @Override
+                            public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                String userId = exchange.getQueryParameters().get("userId").getFirst();
+                                String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                //make user profile and return json
+                                // fill race values
+                                userInfo userInfo = new userInfo();
 
-                if (cache.userCredit.asMap().containsKey(userPhone)){
-                    userInfo.setUserCredit(cache.userCredit.get(userPhone));
-                } else {
-                    userInfo.setUserCredit("0");
-                }
+                                if (cache.userCredit.asMap().containsKey(userPhone)) {
+                                    userInfo.setUserCredit(cache.userCredit.get(userPhone));
+                                } else {
+                                    userInfo.setUserCredit("0");
+                                }
 
-                if (cache.userPlayResult.asMap().containsKey(Integer.valueOf(userId))){
-                    userInfo.setUserPalying(cache.userPlayResult.get(Integer.valueOf(userId)));
-                } else {
-                    userInfo.setUserPalying("0");
-                }
+                                if (cache.userPlayResult.asMap().containsKey(Integer.valueOf(userId))) {
+                                    userInfo.setUserPalying(cache.userPlayResult.get(Integer.valueOf(userId)));
+                                } else {
+                                    userInfo.setUserPalying("0");
+                                }
 
-                AtomicReference<String> giftList= new AtomicReference<>("");
-                if (cache.userGifts.asMap().containsValue(userId)){
-                    cache.userGifts.asMap().forEach((k,v)->{
-                        if (v.equals(userId)) {
-                            logger.info("find gif {} for {} ",k,v);
-                            giftList.set(giftList + k);
-                        }
-                    });
-                }
-                userInfo.setUserGifts(giftList.toString());
-                if (cache.mistakeCount.asMap().containsKey(Integer.valueOf(userId))){
-                    userInfo.setUserMistakeCount(cache.mistakeCount.get(Integer.valueOf(userId)));
-                } else {
-                    userInfo.setUserMistakeCount(0);
-                }
+                                AtomicReference<String> giftList = new AtomicReference<>("");
+                                if (cache.userGifts.asMap().containsValue(userId)) {
+                                    cache.userGifts.asMap().forEach((k, v) -> {
+                                        if (v.equals(userId)) {
+                                            logger.info("find gif {} for {} ", k, v);
+                                            giftList.set(giftList + k);
+                                        }
+                                    });
+                                }
+                                userInfo.setUserGifts(giftList.toString());
+                                if (cache.mistakeCount.asMap().containsKey(Integer.valueOf(userId))) {
+                                    userInfo.setUserMistakeCount(cache.mistakeCount.get(Integer.valueOf(userId)));
+                                } else {
+                                    userInfo.setUserMistakeCount(0);
+                                }
 
 
-                userInfo.setPhoneNumber(userPhone);
-                String res = new Gson().toJson(userInfo);
-                return res;
+                                userInfo.setPhoneNumber(userPhone);
+                                String res = new Gson().toJson(userInfo);
+                                return res;
 
-            }
-        }))
-        .build();
+                            }
+                        }))
+                .build();
         server.start();
 
 

@@ -6,8 +6,7 @@ public class responseType {
     public static String SCORE_MINIMUM_THAN_BASIC_PLAN="score is minimum than basic plan";
     public static String ERROR_NO_SESSION="Error, there is not valid session";
     public static String VERSION="0.1";
-    public static String GIFT="Samsung Galxy 7";
-    public static int MAGIC_INDEX_WIN=6;
+    public static String GIFT="1000";
 
 
 

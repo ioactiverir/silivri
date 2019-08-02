@@ -45,7 +45,7 @@ public class cache {
 
             );
 
-    /* gift, userId*/
+    /* userId, credit*/
     public static final  LoadingCache<String, String> userGifts = CacheBuilder.newBuilder()
             .build(new CacheLoader<String, String>() {
                 @Override
