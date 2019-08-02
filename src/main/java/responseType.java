@@ -8,6 +8,14 @@ public class responseType {
     public static String VERSION="0.1";
     public static String GIFT="1000";
 
+    public static String RESPONSE_TEXT="TEXT";
+    public static String RESPONSE_VIDEO="VIDEO";
+    public static String RESPONSE_AUDIO="AUDIO";
+    public static String RESPONSE_GIFT="GIFT";
+    public static String RESPONSE_IMAGE="IMAGE";
+    public static String RESPONSE_CHARACTER_FERI="DASHFERI";
+
+
 
 
 }

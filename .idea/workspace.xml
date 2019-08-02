@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="44023269-0e57-45e7-a4b4-18819986ae61" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/main/java/cache.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cache.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Quezz.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Response.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/Utility.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/responseType.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/responseType.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/service.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/service.java" afterDir="false" />
     </list>
@@ -19,23 +22,102 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/service.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="297">
-              <caret line="138" column="82" selection-start-line="138" selection-start-column="82" selection-end-line="138" selection-end-column="82" />
+            <state relative-caret-position="-391">
+              <caret line="285" column="90" selection-start-line="285" selection-start-column="90" selection-end-line="285" selection-end-column="90" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#2622#3319#0" />
                 <element signature="e#3938#4227#1" />
                 <element signature="e#4725#5930#0" />
-                <element signature="e#6388#8068#0" expanded="true" />
-                <element signature="e#8067#8068#0" expanded="true" />
-                <element signature="e#8121#12942#0" expanded="true" />
+                <element signature="e#6385#7752#0" expanded="true" />
+                <element signature="e#7751#7752#0" expanded="true" />
+                <element signature="e#7936#16019#0" expanded="true" />
                 <element signature="e#7052#7593#1" />
                 <element signature="e#7755#7976#1" />
                 <element signature="e#8223#8446#1" />
-                <element signature="e#12941#12942#0" expanded="true" />
+                <element signature="e#16018#16019#0" expanded="true" />
+                <element signature="e#16049#18578#0" expanded="true" />
+                <element signature="e#18577#18578#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Utility.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="225">
+              <caret line="16" column="41" selection-start-line="16" selection-start-column="41" selection-end-line="16" selection-end-column="41" />
+              <folding>
+                <element signature="e#148#149#0" expanded="true" />
+                <element signature="e#250#251#0" expanded="true" />
+                <element signature="e#295#296#0" expanded="true" />
+                <element signature="e#352#353#0" expanded="true" />
+                <element signature="e#395#396#0" expanded="true" />
+                <element signature="e#451#452#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Quezz.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="105">
+              <caret line="7" column="37" selection-start-line="7" selection-start-column="37" selection-end-line="7" selection-end-column="37" />
+              <folding>
+                <element signature="e#248#249#0" expanded="true" />
+                <element signature="e#304#305#0" expanded="true" />
+                <element signature="e#352#353#0" expanded="true" />
+                <element signature="e#391#392#0" expanded="true" />
+                <element signature="e#426#427#0" expanded="true" />
+                <element signature="e#482#483#0" expanded="true" />
+                <element signature="e#530#531#0" expanded="true" />
+                <element signature="e#177#178#0" expanded="true" />
+                <element signature="e#209#210#0" expanded="true" />
+                <element signature="e#259#260#0" expanded="true" />
+                <element signature="e#301#302#0" expanded="true" />
+                <element signature="e#337#338#0" expanded="true" />
+                <element signature="e#369#370#0" expanded="true" />
+                <element signature="e#419#420#0" expanded="true" />
+                <element signature="e#461#462#0" expanded="true" />
+                <element signature="e#499#500#0" expanded="true" />
+                <element signature="e#533#534#0" expanded="true" />
+                <element signature="e#587#588#0" expanded="true" />
+                <element signature="e#633#634#0" expanded="true" />
+                <element signature="e#669#670#0" expanded="true" />
+                <element signature="e#701#702#0" expanded="true" />
+                <element signature="e#751#752#0" expanded="true" />
+                <element signature="e#793#794#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/Response.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="90">
+              <caret line="6" column="33" selection-start-line="6" selection-start-column="33" selection-end-line="6" selection-end-column="33" />
+              <folding>
+                <element signature="e#311#312#0" expanded="true" />
+                <element signature="e#359#360#0" expanded="true" />
+                <element signature="e#399#400#0" expanded="true" />
+                <element signature="e#439#440#0" expanded="true" />
+                <element signature="e#475#476#0" expanded="true" />
+                <element signature="e#533#534#0" expanded="true" />
+                <element signature="e#583#584#0" expanded="true" />
+                <element signature="e#618#619#0" expanded="true" />
+                <element signature="e#649#650#0" expanded="true" />
+                <element signature="e#697#698#0" expanded="true" />
+                <element signature="e#737#738#0" expanded="true" />
+                <element signature="e#781#782#0" expanded="true" />
+                <element signature="e#821#822#0" expanded="true" />
+                <element signature="e#887#888#0" expanded="true" />
+                <element signature="e#945#946#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -64,11 +146,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/responseType.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="120">
-              <caret line="8" selection-start-line="8" selection-end-line="8" />
+            <state relative-caret-position="225">
+              <caret line="15" selection-start-line="15" selection-end-line="15" />
             </state>
           </provider>
         </entry>
@@ -136,9 +218,13 @@
         <option value="$PROJECT_DIR$/src/main/resources/log4j2.xml" />
         <option value="$PROJECT_DIR$/src/main/java/gamePalyingResualt.java" />
         <option value="$PROJECT_DIR$/src/main/java/userInfo.java" />
-        <option value="$PROJECT_DIR$/src/main/java/responseType.java" />
         <option value="$PROJECT_DIR$/src/main/java/cache.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Quezz.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Utiliti.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Response.java" />
+        <option value="$PROJECT_DIR$/src/main/java/Utility.java" />
         <option value="$PROJECT_DIR$/src/main/java/service.java" />
+        <option value="$PROJECT_DIR$/src/main/java/responseType.java" />
       </list>
     </option>
   </component>
@@ -160,7 +246,7 @@
       <select />
     </treeState>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="217" />
     <option name="y" value="68" />
     <option name="width" value="964" />
@@ -228,7 +314,8 @@
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1564776893620" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1564786435903" />
+    <property name="extract.method.default.visibility" value="private" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="project.structure.last.edited" value="Modules" />
@@ -295,12 +382,12 @@
       <updated>1564589861560</updated>
       <workItem from="1564589865597" duration="17127000" />
       <workItem from="1564637117988" duration="17728000" />
-      <workItem from="1564769784919" duration="6444000" />
+      <workItem from="1564769784919" duration="15562000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="41299000" />
+    <option name="totallyTimeSpent" value="50417000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="67" y="25" width="1299" height="743" extended-state="6" />
@@ -315,15 +402,15 @@
       <window_info id="Favorites" order="6" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.16286644" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.1791531" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.048701297" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.20358306" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
-      <window_info anchor="bottom" id="Terminal" order="10" weight="0.15309446" />
+      <window_info anchor="bottom" id="Terminal" order="10" weight="0.1514658" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
       <window_info anchor="bottom" id="Messages" order="12" weight="0.32899022" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -340,6 +427,32 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/main/java/raceState.java" />
@@ -385,13 +498,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/responseType.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="120">
-          <caret line="8" selection-start-line="8" selection-end-line="8" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/userInfo.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="15">
@@ -416,23 +522,110 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/makeQuezz.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret column="22" selection-start-column="22" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Quezz.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="105">
+          <caret line="7" column="37" selection-start-line="7" selection-start-column="37" selection-end-line="7" selection-end-column="37" />
+          <folding>
+            <element signature="e#248#249#0" expanded="true" />
+            <element signature="e#304#305#0" expanded="true" />
+            <element signature="e#352#353#0" expanded="true" />
+            <element signature="e#391#392#0" expanded="true" />
+            <element signature="e#426#427#0" expanded="true" />
+            <element signature="e#482#483#0" expanded="true" />
+            <element signature="e#530#531#0" expanded="true" />
+            <element signature="e#177#178#0" expanded="true" />
+            <element signature="e#209#210#0" expanded="true" />
+            <element signature="e#259#260#0" expanded="true" />
+            <element signature="e#301#302#0" expanded="true" />
+            <element signature="e#337#338#0" expanded="true" />
+            <element signature="e#369#370#0" expanded="true" />
+            <element signature="e#419#420#0" expanded="true" />
+            <element signature="e#461#462#0" expanded="true" />
+            <element signature="e#499#500#0" expanded="true" />
+            <element signature="e#533#534#0" expanded="true" />
+            <element signature="e#587#588#0" expanded="true" />
+            <element signature="e#633#634#0" expanded="true" />
+            <element signature="e#669#670#0" expanded="true" />
+            <element signature="e#701#702#0" expanded="true" />
+            <element signature="e#751#752#0" expanded="true" />
+            <element signature="e#793#794#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Utility.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="16" column="41" selection-start-line="16" selection-start-column="41" selection-end-line="16" selection-end-column="41" />
+          <folding>
+            <element signature="e#148#149#0" expanded="true" />
+            <element signature="e#250#251#0" expanded="true" />
+            <element signature="e#295#296#0" expanded="true" />
+            <element signature="e#352#353#0" expanded="true" />
+            <element signature="e#395#396#0" expanded="true" />
+            <element signature="e#451#452#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/service.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="297">
-          <caret line="138" column="82" selection-start-line="138" selection-start-column="82" selection-end-line="138" selection-end-column="82" />
+        <state relative-caret-position="-391">
+          <caret line="285" column="90" selection-start-line="285" selection-start-column="90" selection-end-line="285" selection-end-column="90" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#2622#3319#0" />
             <element signature="e#3938#4227#1" />
             <element signature="e#4725#5930#0" />
-            <element signature="e#6388#8068#0" expanded="true" />
-            <element signature="e#8067#8068#0" expanded="true" />
-            <element signature="e#8121#12942#0" expanded="true" />
+            <element signature="e#6385#7752#0" expanded="true" />
+            <element signature="e#7751#7752#0" expanded="true" />
+            <element signature="e#7936#16019#0" expanded="true" />
             <element signature="e#7052#7593#1" />
             <element signature="e#7755#7976#1" />
             <element signature="e#8223#8446#1" />
-            <element signature="e#12941#12942#0" expanded="true" />
+            <element signature="e#16018#16019#0" expanded="true" />
+            <element signature="e#16049#18578#0" expanded="true" />
+            <element signature="e#18577#18578#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/Response.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="90">
+          <caret line="6" column="33" selection-start-line="6" selection-start-column="33" selection-end-line="6" selection-end-column="33" />
+          <folding>
+            <element signature="e#311#312#0" expanded="true" />
+            <element signature="e#359#360#0" expanded="true" />
+            <element signature="e#399#400#0" expanded="true" />
+            <element signature="e#439#440#0" expanded="true" />
+            <element signature="e#475#476#0" expanded="true" />
+            <element signature="e#533#534#0" expanded="true" />
+            <element signature="e#583#584#0" expanded="true" />
+            <element signature="e#618#619#0" expanded="true" />
+            <element signature="e#649#650#0" expanded="true" />
+            <element signature="e#697#698#0" expanded="true" />
+            <element signature="e#737#738#0" expanded="true" />
+            <element signature="e#781#782#0" expanded="true" />
+            <element signature="e#821#822#0" expanded="true" />
+            <element signature="e#887#888#0" expanded="true" />
+            <element signature="e#945#946#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/responseType.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="225">
+          <caret line="15" selection-start-line="15" selection-end-line="15" />
         </state>
       </provider>
     </entry>
