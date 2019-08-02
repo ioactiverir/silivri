@@ -136,8 +136,9 @@ public class service {
                                     } else {
                                         logger.info("{} authenticated succesfully.", userPhone);
                                     }
-                                    // todo transfer money for his/her banking no.
-                                    return responseType.RESPONSE_SUCCESS_200;
+                                    // todo transfer money for his/her banking
+                                    logger.info("found {} credit balance for user {}", Utility.getUserCreditValue(userId), userId);
+                                    return String.valueOf(Utility.getUserCreditValue(userId) + " Rial transferred to your account.");
                                 } catch (NullPointerException e) {
                                     return responseType.FATAL_INTERNAL_ERROR;
                                 }
@@ -187,41 +188,130 @@ public class service {
                                 Random rnd = new Random();
                                 int selectResp = rnd.nextInt(5);
                                 logger.info("selectResp value {}", selectResp);
+                                Response response=new Response();
                                 switch (selectResp) {
                                     case 1:
-                                        respJson = "TEXT Message";
+
+                                        response.setRespType(responseType.RESPONSE_TEXT);
+                                        response.setRespText(Utility.getRandomText());
+                                        response.setRespCharacterName(responseType.RESPONSE_CHARACTER_FERI);
+                                        response.setRespMediaLink("NULL");
+                                        respJson = gson.toJson(response);
                                         break;
                                     case 2:
-                                        respJson = "1000 RIAL GIFT!";
-                                        // there is not gift yet!
-                                        if (!cache.userGifts.asMap().containsKey(userId)) {
-                                            cache.userGifts.put(userId, String.valueOf("1000"));
-                                            logger.info("add 1000 rial gift for user {}",userId);
-                                        }
-                                        try {
-                                            int value = Integer.parseInt(cache.userGifts.asMap().get(userId));
-                                            value = value + 1000;
-                                            logger.info("{} gift for user {} found.",value, userId);
+                                        /*
+                                        if user have not credit balance or credit is lower than
+                                         minimum value, then do action:
+                                          1- no balance: only gift per 100 try
+                                          2- no balance: if let us to show Ads then gift per 25 try
+                                          2- if balance is upper than 1/3 of standrd then gift per 10 try
+                                           and so on....
+                                           */
 
-                                            cache.userGifts.put(userId, String.valueOf(value));
-                                            logger.info("add 1000 rial gift for user {}",userId);
 
-                                        } catch (NullPointerException e) {
-                                            return responseType.ERROR_USER_IS_NOT_REGISTERED;
+                                        /*
+                                        1- Simple puzzle , example: Nazarsanji, game, mathematics, etc.
+                                         */
+                                        Random rndQuezz = new Random();
+                                        int selectQuezz = rndQuezz.nextInt(3);
+                                        /*
+                                        1= simple  1000 Rial, 5 second
+                                        2= medium  2000 Rial, 10 second
+                                        3= complex 3000 Rial, 15 second
+                                         */
+                                        String resp[] = new String[2];
+                                        switch (selectQuezz) {
+                                            case 1:
+
+                                                resp= Utility.generteQuezz(1);
+                                                Quezz simpleQuezz = new Quezz();
+                                                simpleQuezz.setQuezzName("simple");
+                                                simpleQuezz.setQuezzTime("5");
+                                                simpleQuezz.setQuezzType("math");
+                                                if (!cache.userCredit.asMap().containsKey(userPhone)) {
+                                                    logger.info("user {} playing free", userPhone);
+                                                    simpleQuezz.setQuezzMessage(responseType.QUEEZ_NO_CREDIT_MESSAGE);
+                                                }
+                                                    simpleQuezz.setQuezzSubject(resp[0]);
+                                                simpleQuezz.setQuezzOptions(resp[1]);
+                                                simpleQuezz.setQuezzCredit("1000");
+                                                respJson = gson.toJson(simpleQuezz);
+                                                break;
+                                            case 2:
+                                                resp= Utility.generteQuezz(2);
+                                                Quezz mediumQuezz = new Quezz();
+                                                mediumQuezz.setQuezzName("meduim");
+                                                mediumQuezz.setQuezzTime("10");
+                                                mediumQuezz.setQuezzType("math");
+                                                if (!cache.userCredit.asMap().containsKey(userPhone)) {
+                                                    logger.info("user {} playing free", userPhone);
+                                                    mediumQuezz.setQuezzMessage(responseType.QUEEZ_NO_CREDIT_MESSAGE);
+                                                }
+
+                                                mediumQuezz.setQuezzSubject(resp[0]);
+                                                mediumQuezz.setQuezzOptions(resp[1]);
+                                                mediumQuezz.setQuezzCredit("2000");
+                                                respJson = gson.toJson(mediumQuezz);
+                                                break;
+                                            case 3:
+                                                resp= Utility.generteQuezz(3);
+                                                Quezz complexQuezz = new Quezz();
+                                                complexQuezz.setQuezzName("complex");
+                                                complexQuezz.setQuezzTime("15");
+                                                complexQuezz.setQuezzType("math");
+                                                if (!cache.userCredit.asMap().containsKey(userPhone)) {
+                                                    logger.info("user {} playing free", userPhone);
+                                                    complexQuezz.setQuezzMessage(responseType.QUEEZ_NO_CREDIT_MESSAGE);
+                                                }
+                                                complexQuezz.setQuezzSubject(resp[0]);
+                                                complexQuezz.setQuezzOptions(resp[1]);
+                                                complexQuezz.setQuezzCredit("3000");
+                                                respJson = gson.toJson(complexQuezz);
+                                                break;
+
                                         }
+//
+//                                        // there is not gift yet!
+//                                        if (!cache.userGifts.asMap().containsKey(userId)) {
+//                                            cache.userGifts.put(userId, String.valueOf("1000"));
+//                                            logger.info("add 1000 rial gift for user {}",userId);
+//                                        }
+//                                        try {
+//                                            int value = Integer.parseInt(cache.userGifts.asMap().get(userId));
+//                                            value = value + 1000;
+//                                            logger.info("{} gift for user {} found.",value, userId);
+//
+//                                            cache.userGifts.put(userId, String.valueOf(value));
+//                                            logger.info("add 1000 rial gift for user {}",userId);
+//
+//                                        } catch (NullPointerException e) {
+//                                            return responseType.ERROR_USER_IS_NOT_REGISTERED;
+//                                        }
                                         break;
                                     case 3:
-                                        respJson = "MEDIA/VIDEO(60 Second)";
+                                        response.setRespType(responseType.RESPONSE_VIDEO);
+                                        response.setRespText("NULL");
+                                        response.setRespCharacterName(responseType.RESPONSE_CHARACTER_FERI);
+                                        response.setRespMediaLink(Utility.getRandomVideo());
+                                        respJson = gson.toJson(response);
                                         break;
                                     case 4:
-                                        respJson = "MEDIA/AUDIO(60 Second)";
+                                        response.setRespType(responseType.RESPONSE_AUDIO);
+                                        response.setRespText("NULL");
+                                        response.setRespCharacterName(responseType.RESPONSE_CHARACTER_FERI);
+                                        response.setRespMediaLink(Utility.getRandomAudio());
+                                        respJson = gson.toJson(response);
                                         break;
                                     case 5:
-                                        respJson = "MEDIA/IMAGE(JPEG,GIF)";
+                                        response.setRespType(responseType.RESPONSE_IMAGE);
+                                        response.setRespText("NULL");
+                                        response.setRespCharacterName(responseType.RESPONSE_CHARACTER_FERI);
+                                        response.setRespMediaLink(Utility.getRandomImage());
+                                        respJson = gson.toJson(response);
                                         break;
                                 }
 
-                                return new Gson().toJson(respJson);
+                                return respJson;
                             }
 
                         }).addExactPath("/v1/profile", new ServiceHandler() {
@@ -274,5 +364,7 @@ public class service {
 
 
     }
+
+
 }
 
