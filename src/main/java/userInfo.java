@@ -1,48 +1,40 @@
-public class userInfo {
+import javax.persistence.*;
+import java.io.Serializable;
+
+
+@Entity
+@Table(name = "Users",uniqueConstraints = {
+        @UniqueConstraint(columnNames = "id")})
+
+public class userInfo implements Serializable {
+
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false,updatable = false)
+    private int id;
+
+    @Column(name = "phoneNumber")
     private String phoneNumber;
-    private int userId;
+
+    @Column(name = "userFirstName")
     private String userFirstName;
+
+    @Column(name = "userLastName")
     private String userLastName;
+
+    @Column(name = "bankNo")
     private String bankNo;
+
+    @Column(name = "userMail")
     private String userMail;
-    private String userGifts;
 
-    public String getUserGifts() {
-        return userGifts;
-    }
+    @Column(name = "userCreditValue")
+    private int userCreditValue;
 
-    public void setUserGifts(String userGifts) {
-        this.userGifts = userGifts;
-    }
+    @Column(name = "userGiftValue")
+    private int userGiftValue;
 
-    public String getUserPalying() {
-        return userPalying;
-    }
-
-    public void setUserPalying(String userPalying) {
-        this.userPalying = userPalying;
-    }
-
-    private String userPalying;
-    public String getUserCredit() {
-        return userCredit;
-    }
-
-    public void setUserCredit(String userCredit) {
-        this.userCredit = userCredit;
-    }
-
-    private String userCredit;
-
-    public int getUserMistakeCount() {
-        return userMistakeCount;
-    }
-
-    public void setUserMistakeCount(int userMistakeCount) {
-        this.userMistakeCount = userMistakeCount;
-    }
-
-    private int userMistakeCount;
 
     public String getPhoneNumber() {
         return phoneNumber;
@@ -50,14 +42,6 @@ public class userInfo {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
-    }
-
-    public int getUserId() {
-        return userId;
-    }
-
-    public void setUserId(int userId) {
-        this.userId = userId;
     }
 
     public String getUserFirstName() {
@@ -91,4 +75,48 @@ public class userInfo {
     public void setUserMail(String userMail) {
         this.userMail = userMail;
     }
+
+    public int getUserCreditValue() {
+        return userCreditValue;
+    }
+
+    public void setUserCreditValue(int userCreditValue) {
+        this.userCreditValue = userCreditValue;
+    }
+
+    public int getUserGiftValue() {
+        return userGiftValue;
+    }
+
+    public void setUserGiftValue(int userGiftValue) {
+        this.userGiftValue = userGiftValue;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    private int userId;
+
+    public void setUserId(int userId) {
+        this.userId = id;
+    }
+
+
 }
+
+
+
+
+/*
+    create table userInfo (
+            userId INT NOT NULL auto_increment,
+            phoneNumber VARCHAR(20) default NULL,
+            userFirstName VARCHAR(20) default NULL,
+            userLastName VARCHAR(20) default NULL,
+            bankNo VARCHAR(20) default NULL,
+            userMail VARCHAR(40)  default NULL,
+            userCreditValue INT default 0,
+            userGiftValue INT default 0,
+            PRIMARY KEY (userId) );
+    */

@@ -7,6 +7,7 @@ public class responseType {
     public static String ERROR_NO_SESSION="Error, there is not valid session";
     public static String VERSION="0.1";
     public static String GIFT="1000";
+    public static String SMS_MESSAGE_SEND_CODE="Your Code is :";
 
     public static String RESPONSE_TEXT="TEXT";
     public static String RESPONSE_VIDEO="VIDEO";

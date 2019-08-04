@@ -6,8 +6,12 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.util.Headers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -50,7 +54,8 @@ public class service {
         String json = new Gson().toJson(objList);
         /* Starting service
         Paths:
-            /v1/signUp      where users register in app
+            /v1/sendCode    SMS code request (login/register)
+            /v1/register    user registeration
             /v1/signIn      where users login
             /v1/singOut     user logOut
             /v1/credit      where users increment their credits
@@ -68,7 +73,56 @@ public class service {
                                         return responseType.VERSION;
                                     }
                                 }
-                        )
+                        ).addExactPath("/v1/senCode", new ServiceHandler() {
+                            @Override
+                            public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                return responseType.SMS_MESSAGE_SEND_CODE;
+                            }
+                        }).addExactPath("/v1/register", new ServiceHandler() {
+                            @Override
+                            public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                // get user info
+                                try { //hhhh
+                                    String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                    String userFirstName = exchange.getQueryParameters().get("userFirstName").getFirst();
+                                    String userLastName = exchange.getQueryParameters().get("userLastName").getFirst();
+                                    String userBankNo = exchange.getQueryParameters().get("userBankNo").getFirst();
+                                    String userMail = exchange.getQueryParameters().get("userMail").getFirst();
+                                    userInfo newUser = new userInfo();
+                                    newUser.setPhoneNumber(userPhone);
+                                    newUser.setUserFirstName(userFirstName);
+                                    newUser.setUserLastName(userLastName);
+                                    newUser.setBankNo(userBankNo);
+                                    newUser.setUserMail(userMail);
+                                    newUser.setUserCreditValue(0);
+                                    newUser.setUserGiftValue(0);
+
+                                    Transaction transaction = null;
+                                    try (Session session = sqlCommand.getSessionFactory().openSession()) {
+                                        // start a transaction
+                                        logger.info("starting transcation");
+                                        transaction = session.beginTransaction();
+                                        // save the student objects
+                                        session.save(newUser);
+                                        // commit transaction
+                                        transaction.commit();
+                                        session.close();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        if (transaction != null) {
+                                            transaction.rollback();
+                                        }
+                                        e.printStackTrace();
+                                    }
+                                    newUser.setUserGiftValue(0);
+                                } catch (Exception e) { ///hhhhhh
+                                    e.printStackTrace();
+                                }
+
+                                return "200";
+                            }
+                        })
+
                         .addExactPath("/v1/signin", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
@@ -188,7 +242,7 @@ public class service {
                                 Random rnd = new Random();
                                 int selectResp = rnd.nextInt(5);
                                 logger.info("selectResp value {}", selectResp);
-                                Response response=new Response();
+                                Response response = new Response();
                                 switch (selectResp) {
                                     case 1:
 
@@ -223,7 +277,7 @@ public class service {
                                         switch (selectQuezz) {
                                             case 1:
 
-                                                resp= Utility.generteQuezz(1);
+                                                resp = Utility.generteQuezz(1);
                                                 Quezz simpleQuezz = new Quezz();
                                                 simpleQuezz.setQuezzName("simple");
                                                 simpleQuezz.setQuezzTime("5");
@@ -232,13 +286,13 @@ public class service {
                                                     logger.info("user {} playing free", userPhone);
                                                     simpleQuezz.setQuezzMessage("Charge Account and get more gifts!");
                                                 }
-                                                    simpleQuezz.setQuezzSubject(resp[0]);
+                                                simpleQuezz.setQuezzSubject(resp[0]);
                                                 simpleQuezz.setQuezzOptions(resp[1]);
                                                 simpleQuezz.setQuezzCredit("1000");
                                                 respJson = gson.toJson(simpleQuezz);
                                                 break;
                                             case 2:
-                                                resp= Utility.generteQuezz(2);
+                                                resp = Utility.generteQuezz(2);
                                                 Quezz mediumQuezz = new Quezz();
                                                 mediumQuezz.setQuezzName("meduim");
                                                 mediumQuezz.setQuezzTime("10");
@@ -254,7 +308,7 @@ public class service {
                                                 respJson = gson.toJson(mediumQuezz);
                                                 break;
                                             case 3:
-                                                resp= Utility.generteQuezz(3);
+                                                resp = Utility.generteQuezz(3);
                                                 Quezz complexQuezz = new Quezz();
                                                 complexQuezz.setQuezzName("complex");
                                                 complexQuezz.setQuezzTime("15");
@@ -316,45 +370,42 @@ public class service {
 
                         }).addExactPath("/v1/profile", new ServiceHandler() {
 
-                            @Override
-                            public String serve(HttpServerExchange exchange) throws ExecutionException {
-                                String userId = exchange.getQueryParameters().get("userId").getFirst();
-                                String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                //make user profile and return json
-                                // fill race values
-                                userInfo userInfo = new userInfo();
+                                    @Override
+                                    public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                        String userId = exchange.getQueryParameters().get("userId").getFirst();
+                                        String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                        //make user profile and return json
+                                        // fill race values
 
-                                if (cache.userCredit.asMap().containsKey(userPhone)) {
-                                    userInfo.setUserCredit(cache.userCredit.get(userPhone));
-                                } else {
-                                    userInfo.setUserCredit("0");
-                                }
+                                        userInfo employee=new userInfo();
 
-                                if (cache.userPlayResult.asMap().containsKey(Integer.valueOf(userId))) {
-                                    userInfo.setUserPalying(cache.userPlayResult.get(Integer.valueOf(userId)));
-                                } else {
-                                    userInfo.setUserPalying("0");
-                                }
+                                        Transaction transaction = null;
+                                        try (Session session = sqlCommand.getSessionFactory().openSession()) {
+                                            // start a transaction
+                                            logger.info("list data:: starting transcation");
+                                            transaction = session.beginTransaction();
 
-                                AtomicReference<String> giftList = new AtomicReference<>("");
-                                if (cache.userGifts.asMap().containsValue(userId)) {
-                                    cache.userGifts.asMap().forEach((k, v) -> {
-                                        if (v.equals(userId)) {
-                                            logger.info("find gif {} for {} ", k, v);
-                                            giftList.set(giftList + k);
+                                            String hql = "FROM userInfo E WHERE E.phoneNumber = :userPhone";
+                                            Query query = session.createQuery(hql);
+                                            query.setParameter("userPhone",userPhone);
+                                            List qq=query.list();
+                                            for (Iterator iterator1 = qq.iterator(); iterator1.hasNext();){
+                                                employee = (userInfo) iterator1.next();
+                                                logger.info("First Name: {} " , employee.getUserFirstName());
+
+                                            }
+
+                                            // commit transaction
+                                            transaction.commit();
+                                            session.close();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                            if (transaction != null) {
+                                                transaction.rollback();
+                                            }
+                                            e.printStackTrace();
                                         }
-                                    });
-                                }
-                                userInfo.setUserGifts(giftList.toString());
-                                if (cache.mistakeCount.asMap().containsKey(Integer.valueOf(userId))) {
-                                    userInfo.setUserMistakeCount(cache.mistakeCount.get(Integer.valueOf(userId)));
-                                } else {
-                                    userInfo.setUserMistakeCount(0);
-                                }
-
-
-                                userInfo.setPhoneNumber(userPhone);
-                                String res = new Gson().toJson(userInfo);
+                                String res = new Gson().toJson(employee);
                                 return res;
 
                             }
