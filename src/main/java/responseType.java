@@ -9,6 +9,10 @@ public class responseType {
     public static String GIFT="1000";
     public static String SMS_MESSAGE_SEND_CODE="Your Code is :";
 
+    public static String SMS_MESSAGE_SEND_CODE_NOT_EXSITS="first request sms code.";
+    public static String SMS_MESSAGE_SEND_CODE_INVALID="Your Code is not valid";
+    public static String SMS_MESSAGE_SEND_CODE_SUCCCESS="code is verified.";
+
     public static String RESPONSE_TEXT="TEXT";
     public static String RESPONSE_VIDEO="VIDEO";
     public static String RESPONSE_AUDIO="AUDIO";

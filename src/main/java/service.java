@@ -55,6 +55,7 @@ public class service {
         /* Starting service
         Paths:
             /v1/sendCode    SMS code request (login/register)
+            /v1/verify      get SMS code and verify phone, the forward to registering
             /v1/register    user registeration
             /v1/signIn      where users login
             /v1/singOut     user logOut
@@ -73,21 +74,62 @@ public class service {
                                         return responseType.VERSION;
                                     }
                                 }
-                        ).addExactPath("/v1/senCode", new ServiceHandler() {
+                        ).addExactPath("/v1/sendCode", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
-                                return responseType.SMS_MESSAGE_SEND_CODE;
+                                //todo persist code in cache in order to lookup.
+                                Random rndSmsCode=new Random();
+                                int smsCode=rndSmsCode.nextInt(100000);
+                                try { //try here
+                                    String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                    logger.info("set SMS {} for phone {}",smsCode,userPhone);
+                                    cache.sendCode.put(userPhone, String.valueOf(smsCode));
+                                    return responseType.SMS_MESSAGE_SEND_CODE+smsCode;
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                                return "200";
                             }
-                        }).addExactPath("/v1/register", new ServiceHandler() {
+                        }).addExactPath("/v1/verify", new ServiceHandler() {
+                            @Override
+                            public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                try {
+                                    String userPhone=exchange.getQueryParameters().get("userPhone").getFirst();
+                                    String verifyCode=exchange.getQueryParameters().get("smsCode").getFirst();
+                                    if (!cache.sendCode.asMap().containsKey(userPhone)) {
+                                        // sms for phone not existed.
+                                        return responseType.SMS_MESSAGE_SEND_CODE_NOT_EXSITS;
+                                    } else {
+                                        // ok , then make session for phone and forward to registeration
+                                        if (cache.sendCode.asMap().containsValue(verifyCode)) {
+                                            cache.sendCode.invalidate(userPhone);
+                                            cache.verfiedPhone.put(userPhone, userPhone);
+                                            return responseType.SMS_MESSAGE_SEND_CODE_SUCCCESS;
+                                        } else {
+                                            return  responseType.SMS_MESSAGE_SEND_CODE_INVALID;
+                                        }
+                                    }
+                                }catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                                return "200";
+                            }
+                        })
+                        .addExactPath("/v1/register", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
                                 // get user info
-                                try { //hhhh
+                                try { //try here
                                     String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
                                     String userFirstName = exchange.getQueryParameters().get("userFirstName").getFirst();
                                     String userLastName = exchange.getQueryParameters().get("userLastName").getFirst();
                                     String userBankNo = exchange.getQueryParameters().get("userBankNo").getFirst();
                                     String userMail = exchange.getQueryParameters().get("userMail").getFirst();
+                                    if (!cache.verfiedPhone.asMap().containsKey(userPhone)) {
+                                        // Error, the phone not verfied yet!
+                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
+                                    }
+
                                     userInfo newUser = new userInfo();
                                     newUser.setPhoneNumber(userPhone);
                                     newUser.setUserFirstName(userFirstName);
@@ -106,7 +148,11 @@ public class service {
                                         session.save(newUser);
                                         // commit transaction
                                         transaction.commit();
+                                        // revoke sms code
                                         session.close();
+                                        // ok , the phone registered permanent, now revoke it
+                                        cache.verfiedPhone.invalidate(userPhone);
+
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         if (transaction != null) {
@@ -115,7 +161,7 @@ public class service {
                                         e.printStackTrace();
                                     }
                                     newUser.setUserGiftValue(0);
-                                } catch (Exception e) { ///hhhhhh
+                                } catch (Exception e) { /// try here
                                     e.printStackTrace();
                                 }
 
@@ -372,17 +418,14 @@ public class service {
 
                                     @Override
                                     public String serve(HttpServerExchange exchange) throws ExecutionException {
-                                        String userId = exchange.getQueryParameters().get("userId").getFirst();
-                                        String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                        //make user profile and return json
-                                        // fill race values
 
+                                        String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
                                         userInfo employee=new userInfo();
+                                        //todo call cache, then send query.
 
                                         Transaction transaction = null;
                                         try (Session session = sqlCommand.getSessionFactory().openSession()) {
-                                            // start a transaction
-                                            logger.info("list data:: starting transcation");
+
                                             transaction = session.beginTransaction();
 
                                             String hql = "FROM userInfo E WHERE E.phoneNumber = :userPhone";
@@ -391,10 +434,8 @@ public class service {
                                             List qq=query.list();
                                             for (Iterator iterator1 = qq.iterator(); iterator1.hasNext();){
                                                 employee = (userInfo) iterator1.next();
-                                                logger.info("First Name: {} " , employee.getUserFirstName());
-
+                                                logger.info(" Lookup phone {} sucecess." , employee.getPhoneNumber());
                                             }
-
                                             // commit transaction
                                             transaction.commit();
                                             session.close();
@@ -405,8 +446,7 @@ public class service {
                                             }
                                             e.printStackTrace();
                                         }
-                                String res = new Gson().toJson(employee);
-                                return res;
+                                        return new Gson().toJson(employee);
 
                             }
                         }))

@@ -53,5 +53,23 @@ public class cache {
                     return null;
                 }
             });
-  
+
+    /* phone, code */
+    public static final  LoadingCache<String, String> sendCode = CacheBuilder.newBuilder()
+            .expireAfterWrite(10,TimeUnit.HOURS)
+            .build(new CacheLoader<String, String>() {
+                @Override
+                public String load(String s) throws Exception {
+                    return null;
+                }
+            });
+    /* session for validated phone */
+    public static final  LoadingCache<String, String> verfiedPhone = CacheBuilder.newBuilder()
+            .expireAfterWrite(10,TimeUnit.HOURS)
+            .build(new CacheLoader<String, String>() {
+                @Override
+                public String load(String s) throws Exception {
+                    return null;
+                }
+            });
 }
