@@ -1,3 +1,5 @@
+package core;
+
 public class Response {
     private String respType; // Video, Audio, Gift, etc.
     private String respMediaLink; // Audio, Video, etc.

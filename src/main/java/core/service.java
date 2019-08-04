@@ -1,3 +1,6 @@
+package core;
+
+import IAM.sessionManager;
 import com.google.gson.Gson;
 import io.undertow.Handlers;
 import io.undertow.Undertow;
@@ -15,7 +18,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 abstract class ServiceHandler implements HttpHandler {
@@ -32,27 +34,18 @@ abstract class ServiceHandler implements HttpHandler {
 
 public class service {
     private static Logger logger = LogManager.getLogger(service.class);
-    static String respJson; // based64 response in json
-    static String userId;
-    static String userPhone;
+    //is a thread safe?
+    private static String respJson; // based64 response in json
 
 
     public static void main(String[] args) {
         // make race
         Gson gson = new Gson();
 
-
-        List<raceObj> objList = new ArrayList<raceObj>();
-        // fill race values
-        for (int i = 0; i < 10; i++) {
-
-            objList.add(new raceObj(i, "0"));
-        }
-        objList.add(new raceObj(6, "2000"));
         //fixme desing and implement race maker
-        logger.info("starting service");
-        String json = new Gson().toJson(objList);
-        /* Starting service
+
+        logger.info("starting core.service");
+      /* Starting core.service
         Paths:
             /v1/sendCode    SMS code request (login/register)
             /v1/verify      get SMS code and verify phone, the forward to registering
@@ -77,15 +70,15 @@ public class service {
                         ).addExactPath("/v1/sendCode", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
-                                //todo persist code in cache in order to lookup.
-                                Random rndSmsCode=new Random();
-                                int smsCode=rndSmsCode.nextInt(100000);
+                                //todo persist code in core.cache in order to lookup.
+                                Random rndSmsCode = new Random();
+                                int smsCode = rndSmsCode.nextInt(100000);
                                 try { //try here
                                     String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                    logger.info("set SMS {} for phone {}",smsCode,userPhone);
+                                    logger.info("set SMS {} for phone {}", smsCode, userPhone);
                                     cache.sendCode.put(userPhone, String.valueOf(smsCode));
-                                    return responseType.SMS_MESSAGE_SEND_CODE+smsCode;
-                                }catch (Exception e){
+                                    return responseType.SMS_MESSAGE_SEND_CODE + smsCode;
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                                 return "200";
@@ -93,45 +86,116 @@ public class service {
                         }).addExactPath("/v1/verify", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                String verifyResult="";
                                 try {
-                                    String userPhone=exchange.getQueryParameters().get("userPhone").getFirst();
-                                    String verifyCode=exchange.getQueryParameters().get("smsCode").getFirst();
+                                    String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                    String verifyCode = exchange.getQueryParameters().get("smsCode").getFirst();
                                     if (!cache.sendCode.asMap().containsKey(userPhone)) {
                                         // sms for phone not existed.
                                         return responseType.SMS_MESSAGE_SEND_CODE_NOT_EXSITS;
                                     } else {
+
                                         // ok , then make session for phone and forward to registeration
                                         if (cache.sendCode.asMap().containsValue(verifyCode)) {
                                             cache.sendCode.invalidate(userPhone);
-                                            cache.verfiedPhone.put(userPhone, userPhone);
-                                            return responseType.SMS_MESSAGE_SEND_CODE_SUCCCESS;
+                                            /*
+                                            if phone already registered give it sesssion only.
+                                            if not give tmp session , forward register
+                                             */
+
+                                            Transaction transaction = null;
+                                            try (Session session = sqlCommand.getSessionFactory().openSession()) {
+
+                                                transaction = session.beginTransaction();
+                                                String hql = "FROM userInfo  where phoneNumber= :phoneNumber";
+                                                Query query = session.createQuery(hql);
+                                                query.setParameter("phoneNumber", userPhone);
+
+                                                List result = query.list();
+                                                transaction.commit();
+                                                if (!result.isEmpty()){
+                                                    String sessionID = Utility.getRandomSessionID(25);
+                                                    cache.sessions.put(userPhone, sessionID);
+                                                    verifyResult=sessionID;
+                                                } else {
+                                                    String sessionID = Utility.getRandomSessionID(25);
+                                                    cache.sessions.put(userPhone, sessionID);
+                                                    verifyResult="Forward to register via session => "+sessionID;
+                                                }
+                                                // commit transaction
+                                                session.close();
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                                if (transaction != null) {
+                                                    transaction.rollback();
+                                                }
+                                                e.printStackTrace();
+                                            }
+
+
+
+
                                         } else {
-                                            return  responseType.SMS_MESSAGE_SEND_CODE_INVALID;
+                                            return responseType.SMS_MESSAGE_SEND_CODE_INVALID;
                                         }
                                     }
-                                }catch (Exception e) {
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
-                                return "200";
+                                return verifyResult;
                             }
                         })
                         .addExactPath("/v1/register", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
                                 // get user info
-                                String sessionID="NULL";
+                                String sessionID = "NULL";
+                                userInfo newUser = new userInfo();
                                 try { //try here
                                     String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
                                     String userFirstName = exchange.getQueryParameters().get("userFirstName").getFirst();
                                     String userLastName = exchange.getQueryParameters().get("userLastName").getFirst();
                                     String userBankNo = exchange.getQueryParameters().get("userBankNo").getFirst();
                                     String userMail = exchange.getQueryParameters().get("userMail").getFirst();
-                                    if (!cache.verfiedPhone.asMap().containsKey(userPhone)) {
-                                        // Error, the phone not verfied yet!
-                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
+                                    sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
+                                    // check if usr already registered or not
+                                    Transaction transaction = null;
+                                    try (Session session = sqlCommand.getSessionFactory().openSession()) {
+
+                                        transaction = session.beginTransaction();
+                                        String hql = "FROM userInfo  where phoneNumber= :phoneNumber";
+                                        Query query = session.createQuery(hql);
+                                        query.setParameter("phoneNumber", userPhone);
+
+                                        List result = query.list();
+                                        if (!result.isEmpty()){
+                                          return responseType.PHONE_ALREADY_REGISTERED;
+                                        }
+
+                                        // commit transaction
+                                        transaction.commit();
+                                        session.close();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        if (transaction != null) {
+                                            transaction.rollback();
+                                        }
+                                        e.printStackTrace();
                                     }
 
-                                    userInfo newUser = new userInfo();
+                                    //
+
+
+                                    try {
+                                        if (!IAM.sessionManager.validateSession(userPhone, sessionID)) {
+                                            logger.error("session validation error. {} -> {}", userPhone, sessionID);
+                                            return responseType.SESSION_IS_NOT_VALID;
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+
                                     newUser.setPhoneNumber(userPhone);
                                     newUser.setUserFirstName(userFirstName);
                                     newUser.setUserLastName(userLastName);
@@ -140,7 +204,7 @@ public class service {
                                     newUser.setUserCreditValue(0);
                                     newUser.setUserGiftValue(0);
 
-                                    Transaction transaction = null;
+                                    transaction = null;
                                     try (Session session = sqlCommand.getSessionFactory().openSession()) {
                                         // start a transaction
                                         logger.info("starting transcation");
@@ -151,13 +215,6 @@ public class service {
                                         transaction.commit();
                                         // revoke sms code
                                         session.close();
-                                        // ok , the phone registered permanent, now revoke it
-                                        cache.verfiedPhone.invalidate(userPhone);
-                                        //generate random sessionID and set to usr phone
-                                        sessionID=Utility.getRandomSessionID(25);
-                                        logger.info("set session ID {} for {}",sessionID, userPhone);
-                                        cache.sessions.put(userPhone,sessionID);
-
 
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -171,31 +228,30 @@ public class service {
                                     e.printStackTrace();
                                 }
 
-                                return gson.toJson(sessionID);
+                                return gson.toJson(newUser);
                             }
                         })
 
                         .addExactPath("/v1/signin", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
-                                try {
-                                    String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                    /* if user is not registered then send sms
-                                     * we assumed users alreay send and verified*/
-                                    cache.signedUsers.put(userPhone, userPhone);
-                                    logger.info("{} signed in successfully via {}.", userPhone, userPhone);
-                                    logger.info("inside the userSigned cache {}", cache.signedUsers.asMap().values());
-                                    return responseType.RESPONSE_SUCCESS_200;
-                                } catch (NullPointerException e) {
-                                    return responseType.FATAL_INTERNAL_ERROR;
-                                }
-
+                                return gson.toJson(respJson);
                             }
                         })
                         .addExactPath("/v1/signout", new ServiceHandler() {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
                                 String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                String sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
+                                try {
+                                    if (!IAM.sessionManager.validateSession(userPhone, sessionID)) {
+                                        logger.error("session validation error. {} -> {}", userPhone, sessionID);
+                                        return responseType.SESSION_IS_NOT_VALID;
+                                    }
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
                                 if (cache.signedUsers.asMap().containsValue(userPhone)) {
                                     logger.info("active session find for userPhone {}", userPhone);
                                     cache.signedUsers.invalidate(userPhone);
@@ -209,19 +265,48 @@ public class service {
                             //fixme payment and banking API enhancment
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                String userId = "";
+                                String userPhone = "";
+                                int creditValue = 0;
+                                String sessionID = "";
+
                                 try {
-                                    String userId = exchange.getQueryParameters().get("userId").getFirst();
-                                    String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                    String creditValue = exchange.getQueryParameters().get("credit").getFirst();
-                                    if (!cache.signedUsers.asMap().containsKey(userPhone)) {
-                                        logger.error("{} authenticated error.", userPhone);
-                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
-                                    } else {
-                                        logger.info("{} authenticated succesfully.", userPhone);
+                                    userId = exchange.getQueryParameters().get("userId").getFirst();
+                                    userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                    creditValue = Integer.parseInt(exchange.getQueryParameters().get("credit").getFirst());
+                                    sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
+                                    try {
+                                        if (!IAM.sessionManager.validateSession(userPhone, sessionID)) {
+                                            logger.error("session validation error. {} -> {}", userPhone, sessionID);
+                                            return responseType.SESSION_IS_NOT_VALID;
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
                                     }
-                                    cache.userCredit.put(userPhone, creditValue);
-                                    logger.info("{} append user credit {}.", userPhone, creditValue);
-                                    logger.info("inside the userSigned cache {}", cache.userCredit.asMap().values());
+
+                                    // persist usr credit in DB
+                                    Transaction transaction = null;
+                                    try (Session session = sqlCommand.getSessionFactory().openSession()) {
+
+                                        transaction = session.beginTransaction();
+                                        String hql = "UPDATE userInfo set userCreditValue = :userCreditValue where phoneNumber= :phoneNumber";
+                                        Query query = session.createQuery(hql);
+                                        query.setParameter("userCreditValue", creditValue);
+                                        query.setParameter("phoneNumber", userPhone);
+
+                                        int result = query.executeUpdate();
+                                        logger.info("credit updating result {}", result);
+
+                                        // commit transaction
+                                        transaction.commit();
+                                        session.close();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        if (transaction != null) {
+                                            transaction.rollback();
+                                        }
+                                        e.printStackTrace();
+                                    }
                                     return responseType.RESPONSE_SUCCESS_200;
                                 } catch (NullPointerException e) {
                                     return responseType.FATAL_INTERNAL_ERROR;
@@ -233,18 +318,51 @@ public class service {
                             //fixme payment and banking API enhancment
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
+                                String userId = "";
+                                String userPhone = "";
+                                String sessionID = "";
+                                userInfo employee = new userInfo();
+
                                 try {
                                     userId = exchange.getQueryParameters().get("userId").getFirst();
                                     userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                    if (!cache.signedUsers.asMap().containsKey(userPhone)) {
-                                        logger.error("{} authenticated error.", userPhone);
-                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
-                                    } else {
-                                        logger.info("{} authenticated succesfully.", userPhone);
+                                    sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
+                                    try {
+                                        if (!IAM.sessionManager.validateSession(userPhone, sessionID)) {
+                                            logger.error("session validation error. {} -> {}", userPhone, sessionID);
+                                            return responseType.SESSION_IS_NOT_VALID;
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
                                     }
+
                                     // todo transfer money for his/her banking
-                                    logger.info("found {} credit balance for user {}", Utility.getUserCreditValue(userId), userId);
-                                    return String.valueOf(Utility.getUserCreditValue(userId) + " Rial transferred to your account.");
+
+                                    Transaction transaction = null;
+                                    try (Session session = sqlCommand.getSessionFactory().openSession()) {
+
+                                        transaction = session.beginTransaction();
+                                        String hql = "FROM userInfo where phoneNumber= :phoneNumber";
+                                        Query query = session.createQuery(hql);
+                                        query.setParameter("phoneNumber", userPhone);
+                                        List qq = query.list();
+                                        for (Iterator iterator1 = qq.iterator(); iterator1.hasNext(); ) {
+                                            employee = (userInfo) iterator1.next();
+                                            logger.info(" Lookup credit value {} for user {}", employee.getUserCreditValue(), userPhone);
+                                        }
+
+                                        // commit transaction
+                                        transaction.commit();
+                                        session.close();
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        if (transaction != null) {
+                                            transaction.rollback();
+                                        }
+                                        e.printStackTrace();
+                                    }
+
+                                    return gson.toJson(employee);
                                 } catch (NullPointerException e) {
                                     return responseType.FATAL_INTERNAL_ERROR;
                                 }
@@ -256,26 +374,17 @@ public class service {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
                                 //fixme get all user info from json, then pars it.
-                                AtomicBoolean authorzie= new AtomicBoolean(false);
+                                String userPhone = "";
+                                String userId = "";
+                                String sessionID = "";
                                 try {
                                     userId = exchange.getQueryParameters().get("userId").getFirst();
                                     userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                    //fixme sha1 session ID required.
-                                    String sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
-                                    // check sessionID
-                                    cache.sessions.asMap().forEach((k,v)->{
-                                        if (k.equals(userPhone) && v.equals(sessionID)) {
-                                            authorzie.set(true);
-                                            logger.info("session is active. sessionID {}", sessionID);
-                                        }else {
-                                            logger.error("session is not active. sessionID {}", sessionID);
-                                            authorzie.set(false);
-                                        }
-                                    });
-                                    if (!authorzie.get()==true) {
-                                       return responseType.SESSION_IS_NOT_VALID;
-                                   }
-
+                                    sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
+                                    if (!IAM.sessionManager.validateSession(userPhone, sessionID)) {
+                                        logger.error("session validation error. {} -> {}", userPhone, sessionID);
+                                        return responseType.SESSION_IS_NOT_VALID;
+                                    }
                                     /*
                                         Mistake great than 3 and score is minimum
                                      */
@@ -288,22 +397,9 @@ public class service {
                                         }
                                     }
 
-                                    //check if user registerd or not
-//                                    if (!cache.signedUsers.asMap().containsKey(userPhone)) {
-//                                        logger.error("{} authenticated error.", userPhone);
-//                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
-//                                    } else {
-//                                        logger.info("{} authenticated succesfully.", userPhone);
-//                                    }
-//
-//                                    if (userId.equals("0") || userId.isEmpty() || userPhone.isEmpty()) {
-//                                        // user is not registered yet, forward to regustering
-//                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
-//                                    }
 
-                                } catch (NullPointerException e) {
-                                    logger.error(e.getMessage());
-                                    return "Error. Bad Request.";
+                                } catch (Exception e) {
+                                    e.printStackTrace();
                                 }
 
                                 /* Select random gift, then send to the user.*/
@@ -392,23 +488,6 @@ public class service {
                                                 break;
 
                                         }
-//
-//                                        // there is not gift yet!
-//                                        if (!cache.userGifts.asMap().containsKey(userId)) {
-//                                            cache.userGifts.put(userId, String.valueOf("1000"));
-//                                            logger.info("add 1000 rial gift for user {}",userId);
-//                                        }
-//                                        try {
-//                                            int value = Integer.parseInt(cache.userGifts.asMap().get(userId));
-//                                            value = value + 1000;
-//                                            logger.info("{} gift for user {} found.",value, userId);
-//
-//                                            cache.userGifts.put(userId, String.valueOf(value));
-//                                            logger.info("add 1000 rial gift for user {}",userId);
-//
-//                                        } catch (NullPointerException e) {
-//                                            return responseType.ERROR_USER_IS_NOT_REGISTERED;
-//                                        }
                                         break;
                                     case 3:
                                         response.setRespType(responseType.RESPONSE_VIDEO);
@@ -436,14 +515,24 @@ public class service {
                                 return respJson;
                             }
 
-                        }).addExactPath("/v1/profile", new ServiceHandler() {
+                        }).
+
+                                addExactPath("/v1/profile", new ServiceHandler() {
 
                                     @Override
                                     public String serve(HttpServerExchange exchange) throws ExecutionException {
-
                                         String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
-                                        userInfo employee=new userInfo();
-                                        //todo call cache, then send query.
+                                        String sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
+                                        try {
+                                            if (!IAM.sessionManager.validateSession(userPhone, sessionID)) {
+                                                logger.error("session validation error. {} -> {}", userPhone, sessionID);
+                                                return responseType.SESSION_IS_NOT_VALID;
+                                            }
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                        userInfo employee = new userInfo();
+                                        //todo call core.cache, then send query.
 
                                         Transaction transaction = null;
                                         try (Session session = sqlCommand.getSessionFactory().openSession()) {
@@ -452,11 +541,11 @@ public class service {
 
                                             String hql = "FROM userInfo E WHERE E.phoneNumber = :userPhone";
                                             Query query = session.createQuery(hql);
-                                            query.setParameter("userPhone",userPhone);
-                                            List qq=query.list();
-                                            for (Iterator iterator1 = qq.iterator(); iterator1.hasNext();){
+                                            query.setParameter("userPhone", userPhone);
+                                            List qq = query.list();
+                                            for (Iterator iterator1 = qq.iterator(); iterator1.hasNext(); ) {
                                                 employee = (userInfo) iterator1.next();
-                                                logger.info(" Lookup phone {} sucecess." , employee.getPhoneNumber());
+                                                logger.info(" Lookup phone {} sucecess.", employee.getPhoneNumber());
                                             }
                                             // commit transaction
                                             transaction.commit();
@@ -470,8 +559,8 @@ public class service {
                                         }
                                         return new Gson().toJson(employee);
 
-                            }
-                        }))
+                                    }
+                                }))
                 .build();
         server.start();
 

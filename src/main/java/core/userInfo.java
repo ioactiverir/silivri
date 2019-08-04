@@ -1,3 +1,5 @@
+package core;
+
 import javax.persistence.*;
 import java.io.Serializable;
 
@@ -109,7 +111,7 @@ public class userInfo implements Serializable {
 
 
 /*
-    create table userInfo (
+    create table core.userInfo (
             userId INT NOT NULL auto_increment,
             phoneNumber VARCHAR(20) default NULL,
             userFirstName VARCHAR(20) default NULL,
