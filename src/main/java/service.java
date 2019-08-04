@@ -15,7 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 abstract class ServiceHandler implements HttpHandler {
@@ -62,7 +62,7 @@ public class service {
             /v1/credit      where users increment their credits
             /v1/fire        where users seelct the buttoms
             /v1/profile     where users get their profiles
-            /v1/money     when user request his/her money
+            /v1/money       when user request his/her money
             /v1/version     print API version
         */
         Undertow server = Undertow.builder().addHttpListener(8080,
@@ -119,6 +119,7 @@ public class service {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
                                 // get user info
+                                String sessionID="NULL";
                                 try { //try here
                                     String userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
                                     String userFirstName = exchange.getQueryParameters().get("userFirstName").getFirst();
@@ -152,6 +153,11 @@ public class service {
                                         session.close();
                                         // ok , the phone registered permanent, now revoke it
                                         cache.verfiedPhone.invalidate(userPhone);
+                                        //generate random sessionID and set to usr phone
+                                        sessionID=Utility.getRandomSessionID(25);
+                                        logger.info("set session ID {} for {}",sessionID, userPhone);
+                                        cache.sessions.put(userPhone,sessionID);
+
 
                                     } catch (Exception e) {
                                         e.printStackTrace();
@@ -165,7 +171,7 @@ public class service {
                                     e.printStackTrace();
                                 }
 
-                                return "200";
+                                return gson.toJson(sessionID);
                             }
                         })
 
@@ -250,9 +256,25 @@ public class service {
                             @Override
                             public String serve(HttpServerExchange exchange) throws ExecutionException {
                                 //fixme get all user info from json, then pars it.
+                                AtomicBoolean authorzie= new AtomicBoolean(false);
                                 try {
                                     userId = exchange.getQueryParameters().get("userId").getFirst();
                                     userPhone = exchange.getQueryParameters().get("userPhone").getFirst();
+                                    //fixme sha1 session ID required.
+                                    String sessionID = exchange.getQueryParameters().get("sessionID").getFirst();
+                                    // check sessionID
+                                    cache.sessions.asMap().forEach((k,v)->{
+                                        if (k.equals(userPhone) && v.equals(sessionID)) {
+                                            authorzie.set(true);
+                                            logger.info("session is active. sessionID {}", sessionID);
+                                        }else {
+                                            logger.error("session is not active. sessionID {}", sessionID);
+                                            authorzie.set(false);
+                                        }
+                                    });
+                                    if (!authorzie.get()==true) {
+                                       return responseType.SESSION_IS_NOT_VALID;
+                                   }
 
                                     /*
                                         Mistake great than 3 and score is minimum
@@ -267,17 +289,17 @@ public class service {
                                     }
 
                                     //check if user registerd or not
-                                    if (!cache.signedUsers.asMap().containsKey(userPhone)) {
-                                        logger.error("{} authenticated error.", userPhone);
-                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
-                                    } else {
-                                        logger.info("{} authenticated succesfully.", userPhone);
-                                    }
-
-                                    if (userId.equals("0") || userId.isEmpty() || userPhone.isEmpty()) {
-                                        // user is not registered yet, forward to regustering
-                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
-                                    }
+//                                    if (!cache.signedUsers.asMap().containsKey(userPhone)) {
+//                                        logger.error("{} authenticated error.", userPhone);
+//                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
+//                                    } else {
+//                                        logger.info("{} authenticated succesfully.", userPhone);
+//                                    }
+//
+//                                    if (userId.equals("0") || userId.isEmpty() || userPhone.isEmpty()) {
+//                                        // user is not registered yet, forward to regustering
+//                                        return responseType.ERROR_USER_IS_NOT_REGISTERED;
+//                                    }
 
                                 } catch (NullPointerException e) {
                                     logger.error(e.getMessage());

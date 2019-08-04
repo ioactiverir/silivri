@@ -63,9 +63,18 @@ public class cache {
                     return null;
                 }
             });
-    /* session for validated phone */
+    /* temp session for validated phone */
     public static final  LoadingCache<String, String> verfiedPhone = CacheBuilder.newBuilder()
             .expireAfterWrite(10,TimeUnit.HOURS)
+            .build(new CacheLoader<String, String>() {
+                @Override
+                public String load(String s) throws Exception {
+                    return null;
+                }
+            });
+    // session for authorized phone, map of phoneNumber, SessionID
+
+    public static final  LoadingCache<String, String> sessions = CacheBuilder.newBuilder()
             .build(new CacheLoader<String, String>() {
                 @Override
                 public String load(String s) throws Exception {

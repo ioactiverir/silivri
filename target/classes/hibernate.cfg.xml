@@ -19,7 +19,7 @@
 
         <!-- Drop and re-create the database schema on startup -->
         <!--Edited by halik -->
-        <!--property name="hbm2ddl.auto">create-drop</property-->
+        <property name="hbm2ddl.auto">create-drop</property>
 
         <!-- dbcp connection pool configuration -->
         <property name="hibernate.dbcp.initialSize">5</property>

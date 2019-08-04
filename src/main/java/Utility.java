@@ -1,6 +1,21 @@
 import java.util.Random;
 
 public class Utility {
+    // function to generate a random session ID of length n
+    static String getRandomSessionID(int n) {
+
+        // chose a Character random from this String
+        String AlphaNumericString = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqrstuvxyz";
+        StringBuilder sb = new StringBuilder(n);
+        for (int i = 0; i < n; i++) {
+            int index = (int) (AlphaNumericString.length()
+                    * Math.random());
+            sb.append(AlphaNumericString
+                    .charAt(index));
+        }
+
+        return sb.toString();
+    }
 
     public static String getRandomImage() {
         return "http://exmaple.com/IMG11111.jpg";
@@ -13,9 +28,11 @@ public class Utility {
     public static String getRandomAudio() {
         return "http://exmaple.com/mp300001.mp3";
     }
+
     public static String getRandomText() {
         return "I am a random funny joke!";
     }
+
     public static int getUserCreditValue(String userId) throws NullPointerException {
         int value = Integer.parseInt(cache.userGifts.asMap().get(userId));
         return value;
